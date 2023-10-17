@@ -1,0 +1,31 @@
+policies:
+
+- name: ec2-tag-compliance-mark
+  resource: ec2
+  comment: |
+    Find all (non-ASG) instances that are not conformant
+    to tagging policies, and tag them for stoppage in 1 days.
+  filters:
+    - "tag:aws:autoscaling:groupName": absent
+    - "tag:maid_status": absent
+    - or:
+        - "tag:Owner": absent
+        - "tag:Project": absent
+  actions:
+    - type: mark-for-op
+      op: stop
+      days: 1
+
+- name: ec2-tag-compliance-unmark
+  resource: ec2
+  comment: |
+    Any instances which have previously been marked as
+    non compliant with tag policies, that are now compliant
+    should be unmarked as non-compliant.
+  filters:
+    - "tag:Owner": not-null
+    - "tag:Project": not-null
+      #    - "tag:maid_status": not-null
+  actions:
+    - type: unmark
+      #      tags: ["maid_status"]
